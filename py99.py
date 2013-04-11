@@ -1,5 +1,7 @@
 import collections
 import itertools
+import random
+import operator
 
 ################################################################################
 
@@ -161,12 +163,13 @@ assert list(py12([(2,4),3,(3,4)])) == [4,4,3,4,4,4]
 
 ################################################################################
 
-def py13(xs):
+def py13(xs): # super ugly
     it = iter(xs)
     x = it.next()
     count = 1
     for i in it:
-        if i == x:       count += 1
+        if i == x:
+            count += 1
         else:
             yield (x if count == 1 else (count,x))
             x = i; count = 1
@@ -287,5 +290,102 @@ assert py20([1,2], 2) == (2,[1])
 
 ################################################################################
 
+def py21(xs, x, i):
+    it = iter(xs)
+    for i in xrange(i-1):
+        yield next(it)
+    yield x
+    for y in it:
+        yield y
+
+assert list(py21([], 9, 1))      == [9]
+assert list(py21([], 9, 2))      == []
+assert list(py21([1,2,3], 9, 1)) == [9,1,2,3]
+assert list(py21([1,2,3], 9, 2)) == [1,9,2,3]
+assert list(py21([1,2,3], 9, 3)) == [1,2,9,3]
+assert list(py21([1,2,3], 9, 4)) == [1,2,3,9]
+
+################################################################################
+
+def py22(start, stop):
+    return range(start, stop+1)
+
+assert py22(4,3) == []
+assert py22(4,4) == [4]
+assert py22(4,6) == [4,5,6]
+
+################################################################################
+
+def py23(xs, n):
+    return random.sample(xs, n)
+
+assert set(py23([1,2,3], 2)) < {1,2,3}
+assert len(py23([1,2,3], 2)) == 2
+
+################################################################################
+
+def py24(n, top):
+    return py23(range(1,top+1), n)
+
+assert set(py24(4, 7)) <  set(range(1,7+1))
+assert set(py24(7, 7)) == set(range(1,7+1))
+assert len(py24(2, 4)) == 2
+
+################################################################################
+
+def py25(xs):
+    return random.choice(list(itertools.permutations(xs)))
+
+assert py25([1,2]) in [(1,2),(2,1)]
+
+################################################################################
+
+def py26(n, xs):
+    return itertools.combinations(xs, n)
+
+assert set(py26(1, [1,2,3])) == {(1,), (2,), (3,)}
+assert set(py26(2, [1,2,3])) == {(1,2), (1,3), (2,3)}
+assert set(py26(3, [1,2,3])) == {(1,2,3)}
+
+################################################################################
+
+def py27(xs, r1, r2, r3): # should be generalized to r>3 folding.
+   xs0 = set(xs)
+   for c1 in itertools.combinations(xs0, r1):
+        xs1 = xs0 - set(c1)
+        for c2 in itertools.combinations(xs1, r2):
+            xs2 = xs1 - set(c2)
+            for c3 in itertools.combinations(xs2, r3):
+                yield (c1, c2, c3)
+
+_t1 = ["aldo","beat","carla","david","evi","flip","gary","hugo","ida"]
+assert len(list(py27(_t1, 2,3,4))) == 1260
+assert len(list(py27(_t1, 2,2,5))) == 756
+
+################################################################################
+
+def py28a(xs):
+    return sorted(xs, key=len)
+
+assert py28a([])                      == []
+assert py28a(["aa","aaaa","a","aaa"]) == ["a","aa","aaa","aaaa"]
+
+################################################################################
+
+def py28b(xss):
+    d = collections.defaultdict(lambda: collections.deque())
+    for xs in xss:
+        d[len(xs)].append(xs)
+    d = sorted(d.items(), key=operator.itemgetter(0))
+    d = sorted(d, key=lambda (_k,v): len(v))
+    return (z for (_k,v) in d for z in v)
+
+assert list(py28b([]))                          == []
+assert list(py28b(["aa","aaaa","a","aaa"]))     == ["a","aa","aaa","aaaa"]
+assert list(py28b(["za","aaaa","a","aaa","b"])) == ["za","aaa","aaaa","a","b"]
+
+################################################################################
+
 print "All fine!"
+
 
